@@ -1,0 +1,297 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@layer base {
+  :root {
+    /* LiquidBooks Brand Colors - Light Theme */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    /* Primary: Rich Purple/Blue Gradient */
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Soft Lavender */
+    --secondary: 270 60% 98%;
+    --secondary-foreground: 262 83% 58%;
+
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    /* Accent: Vibrant Cyan */
+    --accent: 199 89% 48%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Success Color */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    /* Warning Color */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 262 83% 58%;
+
+    /* Border Radius System */
+    --radius: 0.625rem;
+    --radius-sm: 0.375rem;
+    --radius-md: 0.625rem;
+    --radius-lg: 0.875rem;
+    --radius-xl: 1.125rem;
+
+    /* Shadows - Inspired by 21st.dev */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-2xl: 0 32px 56px -12px rgba(0, 0, 0, 0.08), 0 6px 12px -3px rgba(0, 0, 0, 0.06), 0 3px 6px -1.5px rgba(0, 0, 0, 0.04);
+
+    /* Gradient Colors */
+    --gradient-from: 262 83% 58%;
+    --gradient-via: 240 100% 68%;
+    --gradient-to: 199 89% 48%;
+  }
+
+  .dark {
+    /* LiquidBooks Brand Colors - Dark Theme */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 7% 7%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 7% 7%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Primary: Brighter Purple for Dark Mode */
+    --primary: 262 80% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Deep Purple */
+    --secondary: 240 8% 12%;
+    --secondary-foreground: 262 80% 65%;
+
+    --muted: 240 8% 12%;
+    --muted-foreground: 240 5% 64.9%;
+
+    /* Accent: Electric Cyan */
+    --accent: 199 95% 55%;
+    --accent-foreground: 240 10% 3.9%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 100% 60%;
+    --warning-foreground: 240 10% 3.9%;
+
+    --border: 240 8% 18%;
+    --input: 240 8% 18%;
+    --ring: 262 80% 65%;
+
+    /* Dark Mode Shadows - Softer with colored tints */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 / 0.5);
+    --shadow-2xl: 0 32px 56px -12px rgba(0, 0, 0, 0.7), 0 6px 12px -3px rgba(0, 0, 0, 0.6), 0 3px 6px -1.5px rgba(0, 0, 0, 0.5);
+
+    /* Gradient Colors for Dark Mode */
+    --gradient-from: 262 80% 65%;
+    --gradient-via: 240 100% 70%;
+    --gradient-to: 199 95% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-feature-settings: 'cv11', 'ss01', 'ss02', 'ss03';
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Typography Scale */
+  h1 {
+    @apply text-4xl font-bold tracking-tight;
+  }
+
+  h2 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  h3 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+
+  h4 {
+    @apply text-xl font-semibold tracking-tight;
+  }
+
+  /* Code Typography */
+  code, pre {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+}
+
+/* Animated Background Effects */
+@layer utilities {
+  .bg-gradient-primary {
+    background: linear-gradient(135deg,
+      hsl(var(--gradient-from)) 0%,
+      hsl(var(--gradient-via)) 50%,
+      hsl(var(--gradient-to)) 100%);
+  }
+
+  .bg-gradient-animated {
+    background: linear-gradient(-45deg,
+      hsl(var(--gradient-from)),
+      hsl(var(--gradient-via)),
+      hsl(var(--gradient-to)));
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+  }
+
+  .bg-mesh-gradient {
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(at 0% 0%, hsla(var(--primary), 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(var(--accent), 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(var(--primary), 0.12) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(var(--accent), 0.08) 0px, transparent 50%);
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .glass-effect {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Floating Animation */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-float-delayed {
+    animation: float 6s ease-in-out infinite 2s;
+  }
+
+  /* Glow Effect */
+  .glow-primary {
+    box-shadow: 0 0 20px hsla(var(--primary), 0.3),
+                0 0 40px hsla(var(--primary), 0.2),
+                0 0 60px hsla(var(--primary), 0.1);
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 20px hsla(var(--accent), 0.3),
+                0 0 40px hsla(var(--accent), 0.2),
+                0 0 60px hsla(var(--accent), 0.1);
+  }
+
+  /* Card Shadows */
+  .shadow-card {
+    box-shadow: var(--shadow-md);
+  }
+
+  .shadow-card-hover {
+    box-shadow: var(--shadow-xl);
+  }
+
+  .shadow-card-premium {
+    box-shadow: var(--shadow-2xl);
+  }
+
+  /* Smooth Transitions */
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-spring {
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+}
+
+/* Animations */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* Custom Scrollbar */
+@layer utilities {
+  .scrollbar-custom::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: var(--radius-sm);
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.3);
+    border-radius: var(--radius-sm);
+    transition: background 0.2s;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.5);
+  }
+}
+
+/* Selection Color */
+::selection {
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
+}
+
+::-moz-selection {
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
+}

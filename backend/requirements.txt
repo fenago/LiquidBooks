@@ -1,0 +1,11 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.6
+python-multipart==0.0.20
+jupyter-book==1.0.3
+PyGithub==2.6.0
+python-dotenv==1.0.1
+httpx==0.28.1
+jupyterquiz==2.9.6.2
+openai==1.58.1
+anthropic==0.40.0

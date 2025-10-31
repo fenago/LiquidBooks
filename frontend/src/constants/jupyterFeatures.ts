@@ -1,0 +1,306 @@
+export interface JupyterBookFeature {
+  id: string;
+  name: string;
+  description: string;
+  category: 'basic' | 'advanced' | 'interactive' | 'layout' | 'mathematical';
+  enabled: boolean;
+}
+
+export const JUPYTER_BOOK_FEATURES: JupyterBookFeature[] = [
+  // Basic Features
+  {
+    id: 'code_blocks',
+    name: 'Code Blocks',
+    description: 'Syntax-highlighted code examples with execution support',
+    category: 'basic',
+    enabled: true,
+  },
+  {
+    id: 'code_cell_tags',
+    name: 'Code Cell Tags',
+    description: 'Tagged code cells for hiding input/output, removing cells, etc.',
+    category: 'basic',
+    enabled: false,
+  },
+  {
+    id: 'math_equations',
+    name: 'Math Equations',
+    description: 'LaTeX mathematical equations (inline and display)',
+    category: 'basic',
+    enabled: true,
+  },
+  {
+    id: 'tables',
+    name: 'Tables',
+    description: 'Markdown tables and list-tables for structured data',
+    category: 'basic',
+    enabled: true,
+  },
+  {
+    id: 'lists',
+    name: 'Lists',
+    description: 'Bullet and numbered lists with nesting support',
+    category: 'basic',
+    enabled: true,
+  },
+  {
+    id: 'blockquotes',
+    name: 'Blockquotes',
+    description: 'Highlighted quote blocks for emphasis',
+    category: 'basic',
+    enabled: true,
+  },
+  {
+    id: 'task_lists',
+    name: 'Task Lists',
+    description: 'Checkbox task lists with completion tracking',
+    category: 'basic',
+    enabled: false,
+  },
+  {
+    id: 'images',
+    name: 'Images',
+    description: 'Images with alt text and sizing options',
+    category: 'basic',
+    enabled: true,
+  },
+  {
+    id: 'figures',
+    name: 'Figures',
+    description: 'Captioned figures with labels and cross-referencing',
+    category: 'basic',
+    enabled: false,
+  },
+  {
+    id: 'footnotes',
+    name: 'Footnotes',
+    description: 'Numbered references with definitions at page bottom',
+    category: 'basic',
+    enabled: true,
+  },
+
+  // Advanced Features
+  {
+    id: 'admonitions',
+    name: 'Admonitions',
+    description: 'Note, warning, tip, important, caution, danger, error, hint, and attention callout boxes',
+    category: 'advanced',
+    enabled: true,
+  },
+  {
+    id: 'margin_notes',
+    name: 'Margin Notes',
+    description: 'Side notes and annotations in the margin',
+    category: 'advanced',
+    enabled: false,
+  },
+  {
+    id: 'sidebars',
+    name: 'Sidebars',
+    description: 'Floating sidebar content boxes',
+    category: 'advanced',
+    enabled: false,
+  },
+  {
+    id: 'dropdowns',
+    name: 'Dropdowns',
+    description: 'Collapsible/expandable content sections',
+    category: 'advanced',
+    enabled: false,
+  },
+  {
+    id: 'epigraphs',
+    name: 'Epigraphs',
+    description: 'Stylized quotes with attribution at chapter beginnings',
+    category: 'advanced',
+    enabled: false,
+  },
+  {
+    id: 'glossary',
+    name: 'Glossary Terms',
+    description: 'Referenced terminology and definitions with auto-linking',
+    category: 'advanced',
+    enabled: false,
+  },
+  {
+    id: 'definition_lists',
+    name: 'Definition Lists',
+    description: 'Term-definition pairs with complex formatting support',
+    category: 'advanced',
+    enabled: false,
+  },
+  {
+    id: 'cross_references',
+    name: 'Cross References',
+    description: 'Internal links and references between chapters and sections',
+    category: 'advanced',
+    enabled: false,
+  },
+  {
+    id: 'citations',
+    name: 'Citations & Bibliography',
+    description: 'BibTeX bibliography and citation management',
+    category: 'advanced',
+    enabled: false,
+  },
+
+  // Layout & Design Features (Sphinx Design)
+  {
+    id: 'mermaid_diagrams',
+    name: 'Mermaid Diagrams',
+    description: 'Create flowcharts, sequence diagrams, and more with Mermaid',
+    category: 'layout',
+    enabled: false,
+  },
+  {
+    id: 'grids',
+    name: 'Grids',
+    description: 'Screen-responsive grid layouts for organizing content',
+    category: 'layout',
+    enabled: false,
+  },
+  {
+    id: 'cards',
+    name: 'Cards',
+    description: 'Flexible and extensible content containers with headers and footers',
+    category: 'layout',
+    enabled: false,
+  },
+  {
+    id: 'tabs',
+    name: 'Tabs',
+    description: 'Synchronizable tabbed content sets',
+    category: 'layout',
+    enabled: false,
+  },
+  {
+    id: 'badges',
+    name: 'Badges & Buttons',
+    description: 'Inline badges and styled button elements',
+    category: 'layout',
+    enabled: false,
+  },
+  {
+    id: 'icons',
+    name: 'Icons',
+    description: 'Inline icons from popular icon libraries',
+    category: 'layout',
+    enabled: false,
+  },
+
+  // Mathematical Features (sphinx-proof)
+  {
+    id: 'theorems',
+    name: 'Theorems',
+    description: 'Mathematical theorem blocks with numbering',
+    category: 'mathematical',
+    enabled: false,
+  },
+  {
+    id: 'proofs',
+    name: 'Proofs',
+    description: 'Mathematical proof environments',
+    category: 'mathematical',
+    enabled: false,
+  },
+  {
+    id: 'lemmas',
+    name: 'Lemmas',
+    description: 'Lemma blocks for mathematical arguments',
+    category: 'mathematical',
+    enabled: false,
+  },
+  {
+    id: 'corollaries',
+    name: 'Corollaries',
+    description: 'Corollary blocks following theorems',
+    category: 'mathematical',
+    enabled: false,
+  },
+  {
+    id: 'definitions',
+    name: 'Mathematical Definitions',
+    description: 'Formal definition blocks with numbering',
+    category: 'mathematical',
+    enabled: false,
+  },
+  {
+    id: 'axioms',
+    name: 'Axioms',
+    description: 'Axiom blocks for foundational statements',
+    category: 'mathematical',
+    enabled: false,
+  },
+  {
+    id: 'propositions',
+    name: 'Propositions',
+    description: 'Proposition blocks for mathematical statements',
+    category: 'mathematical',
+    enabled: false,
+  },
+  {
+    id: 'examples',
+    name: 'Examples',
+    description: 'Numbered example blocks',
+    category: 'mathematical',
+    enabled: false,
+  },
+  {
+    id: 'remarks',
+    name: 'Remarks',
+    description: 'Remark blocks for additional observations',
+    category: 'mathematical',
+    enabled: false,
+  },
+  {
+    id: 'algorithms',
+    name: 'Algorithms',
+    description: 'Algorithm blocks with pseudocode formatting',
+    category: 'mathematical',
+    enabled: false,
+  },
+
+  // Interactive Features
+  {
+    id: 'quizzes',
+    name: 'Interactive Quizzes',
+    description: 'Multiple choice quizzes using jupyterquiz',
+    category: 'interactive',
+    enabled: false,
+  },
+  {
+    id: 'interactive_plots',
+    name: 'Interactive Plots',
+    description: 'Plotly, Altair, and Bokeh interactive visualizations',
+    category: 'interactive',
+    enabled: false,
+  },
+  {
+    id: 'widgets',
+    name: 'Interactive Widgets',
+    description: 'ipywidgets for sliders, inputs, and interactive controls',
+    category: 'interactive',
+    enabled: false,
+  },
+  {
+    id: 'thebe',
+    name: 'Live Code (Thebe)',
+    description: 'In-browser executable code cells',
+    category: 'interactive',
+    enabled: false,
+  },
+  {
+    id: 'binder',
+    name: 'Binder Launch Buttons',
+    description: 'Launch buttons for Binder cloud notebooks',
+    category: 'interactive',
+    enabled: false,
+  },
+  {
+    id: 'colab',
+    name: 'Colab Launch Buttons',
+    description: 'Launch buttons for Google Colab',
+    category: 'interactive',
+    enabled: false,
+  },
+];

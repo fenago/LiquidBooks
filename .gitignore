@@ -1,0 +1,256 @@
+# LiquidBooks .gitignore
+
+# ============================================
+# Python / Backend
+# ============================================
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python build artifacts
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.Python
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage
+.pytest_cache/
+.coverage
+.tox/
+htmlcov/
+*.cover
+.hypothesis/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# ============================================
+# Node / Frontend
+# ============================================
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build output
+frontend/dist/
+frontend/build/
+*.tsbuildinfo
+
+# Vite
+frontend/.vite/
+.vite/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# ============================================
+# Jupyter Book Build Output
+# ============================================
+
+# Build directories
+_build/
+**/_build/
+
+# Temporary book directories
+/tmp/
+/temp/
+liquidbook_*/
+
+# Generated books
+books/
+output/
+*.zip
+
+# ============================================
+# IDE / Editor
+# ============================================
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.*.sw?
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# ============================================
+# OS Files
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+
+# ============================================
+# Version Control / Git
+# ============================================
+
+# Git merge files
+*.orig
+*.BACKUP.*
+*.BASE.*
+*.LOCAL.*
+*.REMOTE.*
+*_BACKUP_*.txt
+*_BASE_*.txt
+*_LOCAL_*.txt
+*_REMOTE_*.txt
+
+# ============================================
+# Secrets & Credentials
+# ============================================
+
+# API keys and tokens
+secrets.json
+credentials.json
+*.pem
+*.key
+*.crt
+*.p12
+.env.secret
+
+# GitHub tokens
+github_token.txt
+.github_token
+
+# ============================================
+# Temporary & Cache Files
+# ============================================
+
+# General temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.cache
+
+# Log files
+*.log
+logs/
+
+# Lock files (keep package-lock.json for reproducibility)
+# Uncomment if you want to ignore lock files
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ============================================
+# Project Specific
+# ============================================
+
+# Research and scratch work
+research/scratch/
+research/experiments/
+
+# Local testing
+test_output/
+*.test.log
+
+# User uploads
+uploads/
+user_books/
+
+# Database files (if any)
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.backup
+backup/
+backups/
