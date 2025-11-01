@@ -41,10 +41,12 @@ allowed_origins = [
     "http://localhost:3000",
 ]
 
-# Add production frontend URL from environment variable
+# Add production frontend URLs from environment variable (comma-separated)
 frontend_url = os.getenv("FRONTEND_URL")
 if frontend_url:
-    allowed_origins.append(frontend_url)
+    # Support multiple URLs separated by commas
+    urls = [url.strip() for url in frontend_url.split(",")]
+    allowed_origins.extend(urls)
 
 app.add_middleware(
     CORSMiddleware,
