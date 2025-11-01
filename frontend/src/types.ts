@@ -21,6 +21,39 @@ export interface LegalClauses {
   additionalClauses?: string;
 }
 
+export interface PublishingInfo {
+  showAuthorName?: boolean;
+
+  // Copyright page
+  penName?: string;
+  edition?: string;
+  yearOfPublication?: string;
+  isbns?: {
+    epub?: string;
+    kindle?: string;
+    paperback?: string;
+    hardcover?: string;
+    pdf?: string;
+  };
+  publisherName?: string;
+  publisherLogo?: string;
+  collaborators?: Array<{
+    name: string;
+    role: string;
+  }>;
+
+  // Front matter
+  epigraph?: string;
+  foreword?: string;
+  dedication?: string;
+  preface?: string;
+  acknowledgements?: string;
+
+  // Back matter
+  aboutTheAuthor?: string;
+  alsoByTheAuthor?: string;
+}
+
 export interface Book {
   id: string;
   title: string;
@@ -28,6 +61,7 @@ export interface Book {
   description: string;
   chapters: Chapter[];
   legalClauses?: LegalClauses;
+  publishingInfo?: PublishingInfo;
   book_type?: string;
   tone?: string;
   target_audience?: string;

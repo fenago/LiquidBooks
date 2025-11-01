@@ -1,31 +1,38 @@
 import { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Moon, Sun, Save, RefreshCw } from 'lucide-react';
+import { Settings as SettingsIcon, Moon, Sun, Save, RefreshCw, Filter, FileText } from 'lucide-react';
 import { Button } from '../components/ui/Button.js';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card.js';
 import { Input } from '../components/ui/Input.js';
 import { Label } from '../components/ui/Label.js';
 import { Badge } from '../components/ui/Badge.js';
 import { useTheme } from '../contexts/ThemeContext.js';
 import { useSettingsStore, type AIProvider, type AIModel } from '../stores/settingsStore.js';
+import FeatureSelector from '../components/FeatureSelector.js';
 
 export default function Settings() {
+  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const {
     apiKeys,
     selectedProvider,
     selectedModel,
     backendUrl,
+    defaultFeatures,
     setApiKey,
     setProvider,
     setModel,
     setBackendUrl,
+    setDefaultFeatures,
   } = useSettingsStore();
 
   const [localKeys, setLocalKeys] = useState(apiKeys);
   const [localBackendUrl, setLocalBackendUrl] = useState(backendUrl);
+  const [localDefaultFeatures, setLocalDefaultFeatures] = useState(defaultFeatures);
   const [saved, setSaved] = useState(false);
   const [models, setModels] = useState<AIModel[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
+  const [showFeatureSelector, setShowFeatureSelector] = useState(false);
 
   // Fetch models when provider changes
   useEffect(() => {
@@ -65,6 +72,7 @@ export default function Settings() {
       setApiKey(provider as AIProvider, key);
     });
     setBackendUrl(localBackendUrl);
+    setDefaultFeatures(localDefaultFeatures);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -306,6 +314,56 @@ export default function Settings() {
             </CardContent>
           </Card>
 
+          {/* Default Jupyter Book Features */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Default Jupyter Book Features</CardTitle>
+              <CardDescription>
+                Set default features for new books (can be customized per book)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={() => setShowFeatureSelector(true)}
+                variant="outline"
+                className="w-full"
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                {localDefaultFeatures.length > 0
+                  ? `${localDefaultFeatures.length} Default Features Selected`
+                  : 'Configure Default Features'}
+              </Button>
+              {localDefaultFeatures.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  These features will be automatically selected for new books
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Publishing Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Publishing Settings</CardTitle>
+              <CardDescription>
+                Configure copyright, ISBNs, front matter, and back matter for your books
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={() => navigate('/publishing-settings')}
+                variant="outline"
+                className="w-full"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Configure Publishing Settings
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">
+                Set up copyright information, dedication, preface, acknowledgements, and more
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Save Button */}
           <div className="flex justify-end">
             <Button onClick={handleSave} size="lg">
@@ -314,6 +372,18 @@ export default function Settings() {
             </Button>
           </div>
         </div>
+
+        {/* Feature Selector Modal */}
+        {showFeatureSelector && (
+          <FeatureSelector
+            onClose={() => setShowFeatureSelector(false)}
+            onConfirm={(features) => {
+              setLocalDefaultFeatures(features);
+              setShowFeatureSelector(false);
+            }}
+            initialSelected={localDefaultFeatures}
+          />
+        )}
       </div>
     </div>
   );

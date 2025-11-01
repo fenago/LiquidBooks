@@ -9,3 +9,6 @@ httpx==0.28.1
 jupyterquiz==2.9.6.2
 openai==1.58.1
 anthropic==0.40.0
+requests==2.32.5
+PyYAML==6.0.3
+Jinja2==3.1.6

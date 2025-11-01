@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, Download, CheckCircle, Rocket, AlertCircle, Globe, ExternalLink, Info } from 'lucide-react';
+import { BookOpen, Download, CheckCircle, Rocket, AlertCircle, Globe, ExternalLink, Info, Settings } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
+import FeatureSelector from '../components/FeatureSelector';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -41,7 +42,8 @@ export default function BookPublisher() {
   const outline = location.state?.outline;
   const chapterContents = location.state?.chapterContents as ChapterContent[];
   const chapterTemplate = location.state?.chapterTemplate;
-  const selectedFeatures = location.state?.selectedFeatures || [];
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>(location.state?.selectedFeatures || []);
+  const [showFeatureSelector, setShowFeatureSelector] = useState(false);
 
   useEffect(() => {
     if (!outline || !chapterContents) {
@@ -248,6 +250,17 @@ export default function BookPublisher() {
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                       <CheckCircle className="h-5 w-5 text-green-500" />
                       <span className="text-sm">Content validated</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <span className="text-sm font-medium">Jupyter Book Features</span>
+                      <Button
+                        onClick={() => setShowFeatureSelector(true)}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        {selectedFeatures.length > 0 ? `${selectedFeatures.length} features` : 'Configure'}
+                      </Button>
                     </div>
                   </div>
 
@@ -558,6 +571,18 @@ export default function BookPublisher() {
           )}
         </motion.div>
       </div>
+
+      {/* Feature Selector Modal */}
+      {showFeatureSelector && (
+        <FeatureSelector
+          onClose={() => setShowFeatureSelector(false)}
+          onConfirm={(features) => {
+            setSelectedFeatures(features);
+            setShowFeatureSelector(false);
+          }}
+          initialSelected={selectedFeatures}
+        />
+      )}
     </div>
   );
 }

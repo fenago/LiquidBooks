@@ -117,6 +117,7 @@ def build_outline_user_prompt(
     tone: str,
     target_audience: str,
     num_chapters: Optional[int],
+    pages_per_chapter: Optional[int],
     requirements: Optional[str],
     custom_prompt: Optional[str] = None
 ) -> str:
@@ -129,6 +130,7 @@ def build_outline_user_prompt(
         tone: Writing tone
         target_audience: Target audience
         num_chapters: Number of chapters (None = AI decides)
+        pages_per_chapter: Target pages per chapter (None = AI decides)
         requirements: Special requirements
         custom_prompt: Optional custom user prompt override
 
@@ -149,6 +151,12 @@ def build_outline_user_prompt(
         else:
             chapter_guidance = "Include an appropriate number of chapters for this topic."
 
+    # Add pages per chapter guidance if specified
+    pages_guidance = ""
+    if pages_per_chapter:
+        estimated_words = pages_per_chapter * 300
+        pages_guidance = f"\nEach chapter should target approximately {pages_per_chapter} pages (~{estimated_words:,} words)."
+
     requirements_section = f"\n\nSPECIAL REQUIREMENTS:\n{requirements}" if requirements else ""
 
     # Get recommended features for this book type
@@ -160,6 +168,9 @@ def build_outline_user_prompt(
     book_type_name = book_type.name if book_type else book_type_id
     book_type_description = book_type.description if book_type else "general book"
 
+    # Calculate estimated words for chapter template
+    example_estimated_words = (pages_per_chapter * 300) if pages_per_chapter else 1500
+
     prompt = f"""Create a comprehensive, transformation-focused book outline about: "{topic}"
 
 ═══════════════════════════════════════════════════════════════════════
@@ -169,7 +180,7 @@ def build_outline_user_prompt(
 Book Type: {book_type_name} ({book_type_description})
 Tone: {tone}
 Target Audience: {target_audience}
-Chapter Structure: {chapter_guidance}{requirements_section}
+Chapter Structure: {chapter_guidance}{pages_guidance}{requirements_section}
 
 ═══════════════════════════════════════════════════════════════════════
 🎯 TRANSFORMATION BLUEPRINT APPROACH
@@ -270,7 +281,7 @@ Generate a complete JSON response with this exact structure:
       "connection_to_next": "Explicit explanation of how this chapter sets up the next chapter's content",
       "emotional_state_start": "Reader's emotional/knowledge state at chapter start",
       "emotional_state_end": "Reader's emotional/knowledge state at chapter end",
-      "estimated_words": 1500,
+      "estimated_words": {example_estimated_words},
       "key_concepts": ["Concept 1", "Concept 2", "Concept 3"],
       "real_world_relevance": "Why this chapter matters in practice"
     }}
@@ -346,7 +357,7 @@ CHAPTER REQUIREMENTS:
 - Chapter Title: {chapter_context.get('title', 'Untitled Chapter')}
 - Description: {chapter_context.get('description', '')}
 - Learning Objectives: {', '.join(chapter_context.get('learning_objectives', []))}
-- Estimated Length: {chapter_context.get('estimated_words', 1500)} words
+- TARGET WORD COUNT: {chapter_context.get('estimated_words', 1500)} words (STRICT REQUIREMENT - DO NOT significantly exceed or fall short of this target)
 
 CONNECTION TO BOOK FLOW:
 {f"Previous Chapter: {chapter_context.get('connection_to_previous', 'This is the first chapter')}" if chapter_context.get('connection_to_previous') else "This is the first chapter."}

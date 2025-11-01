@@ -13,6 +13,7 @@ import ChapterBuilder from './pages/ChapterBuilder.js';
 import ArtifactManager from './pages/ArtifactManager.js';
 import BookAssembler from './pages/BookAssembler.js';
 import BookPublisher from './pages/BookPublisher.js';
+import PublishingSettings from './pages/PublishingSettings.js';
 import AudienceResearch from './pages/AudienceResearch.js';
 import BookCreator from './components/BookCreator.js';
 import Editor from './components/Editor.js';
@@ -40,6 +41,7 @@ function AppRoutes() {
           <Route path="/create/artifacts" element={<ArtifactManager />} />
           <Route path="/create/assemble" element={<BookAssembler />} />
           <Route path="/create/publish" element={<BookPublisher />} />
+          <Route path="/publishing-settings" element={<PublishingSettings />} />
           <Route
             path="/create"
             element={

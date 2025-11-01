@@ -9,7 +9,8 @@ import {
   Check,
   AlertCircle,
   ArrowRight,
-  ChevronRight
+  ChevronRight,
+  Settings
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
@@ -17,6 +18,7 @@ import { Textarea } from '../components/ui/Textarea';
 import { Badge } from '../components/ui/Badge';
 import { Input } from '../components/ui/Input';
 import PromptEditor from '../components/PromptEditor';
+import FeatureSelector from '../components/FeatureSelector';
 import ReactMarkdown from 'react-markdown';
 import { CHAPTER_TEMPLATES, getTemplate } from '../constants/chapterTemplates';
 
@@ -54,6 +56,7 @@ interface ChapterContent {
   chapter_number: number;
   content: string;
   status: 'not_started' | 'generating' | 'draft' | 'complete';
+  features?: string[]; // Per-chapter Jupyter Book features
 }
 
 const fadeInUp = {
@@ -78,6 +81,7 @@ export default function ChapterBuilder() {
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
   const [customWordCounts, setCustomWordCounts] = useState<Record<number, number>>({});
   const [showPromptEditor, setShowPromptEditor] = useState(false);
+  const [showFeatureSelector, setShowFeatureSelector] = useState(false);
 
   useEffect(() => {
     const outlineData = location.state?.outline;
@@ -92,7 +96,8 @@ export default function ChapterBuilder() {
       const contents: ChapterContent[] = outlineData.chapters.map((ch: ChapterOutline) => ({
         chapter_number: ch.chapter_number,
         content: '',
-        status: 'not_started' as const
+        status: 'not_started' as const,
+        features: outlineData.recommended_features || [] // Initialize with book's recommended features
       }));
       setChapterContents(contents);
     } else {
@@ -155,8 +160,8 @@ export default function ChapterBuilder() {
         chapter_template: chapterTemplate,
         template_structure: template?.structure || [],
 
-        // Features context
-        enabled_features: selectedFeatures,
+        // Features context - use per-chapter features
+        enabled_features: currentContent.features || selectedFeatures,
 
         // Previous chapter context for continuity
         previous_chapter_title: currentChapterIndex > 0
@@ -187,12 +192,13 @@ export default function ChapterBuilder() {
       const data = await response.json();
 
       if (data.success) {
-        // Update chapter content
+        // Update chapter content while preserving features
         const updatedContents = [...chapterContents];
         updatedContents[currentChapterIndex] = {
           chapter_number: currentChapter.chapter_number,
           content: data.content,
-          status: 'draft'
+          status: 'draft',
+          features: updatedContents[currentChapterIndex].features
         };
         setChapterContents(updatedContents);
         setViewMode('preview');
@@ -241,7 +247,7 @@ ${template?.structure.map(item => `- ${item}`).join('\n')}
 
 ENABLED JUPYTER BOOK FEATURES:
 Use these features appropriately throughout the chapter:
-${selectedFeatures.join(', ')}
+${(currentContent.features || selectedFeatures).join(', ')}
 
 CONTINUITY CONTEXT:
 ${currentChapterIndex > 0 ? `Previous Chapter: ${outline.chapters[currentChapterIndex - 1].title}` : 'This is the first chapter'}
@@ -464,6 +470,28 @@ Return ONLY the chapter content in MyST Markdown format, starting with the chapt
                       </div>
                     </div>
                   )}
+
+                  {/* Per-Chapter Features */}
+                  <div className="pt-4 border-t">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm font-medium">Jupyter Book Features for this Chapter</div>
+                      <Button
+                        onClick={() => setShowFeatureSelector(true)}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        {currentContent?.features && currentContent.features.length > 0
+                          ? `${currentContent.features.length} features`
+                          : 'Configure'}
+                      </Button>
+                    </div>
+                    {currentContent?.features && currentContent.features.length > 0 && (
+                      <div className="text-xs text-muted-foreground mt-2">
+                        {currentContent.features.length} feature{currentContent.features.length !== 1 ? 's' : ''} selected for this chapter
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -683,6 +711,20 @@ Return ONLY the chapter content in MyST Markdown format, starting with the chapt
             />
           );
         })()}
+
+        {/* Feature Selector Modal */}
+        {showFeatureSelector && (
+          <FeatureSelector
+            onClose={() => setShowFeatureSelector(false)}
+            onConfirm={(features) => {
+              const newContents = [...chapterContents];
+              newContents[currentChapterIndex].features = features;
+              setChapterContents(newContents);
+              setShowFeatureSelector(false);
+            }}
+            initialSelected={currentContent?.features || []}
+          />
+        )}
       </div>
     </div>
   );

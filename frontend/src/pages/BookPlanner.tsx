@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Sparkles, Eye, ArrowRight } from 'lucide-react';
+import { BookOpen, Sparkles, Eye, ArrowRight, Settings } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
@@ -10,6 +10,7 @@ import { Textarea } from '../components/ui/Textarea';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '../components/ui/Accordion';
 import { BOOK_TYPES, TONE_OPTIONS, AUDIENCE_OPTIONS, getToneOptionsForBookType } from '../constants/bookTypes';
 import PromptEditor from '../components/PromptEditor';
+import FeatureSelector from '../components/FeatureSelector';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -22,6 +23,7 @@ const fadeInUp = {
 export default function BookPlanner() {
   const navigate = useNavigate();
   const [showPromptEditor, setShowPromptEditor] = useState(false);
+  const [showFeatureSelector, setShowFeatureSelector] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationStep, setGenerationStep] = useState('');
@@ -33,7 +35,9 @@ export default function BookPlanner() {
   const [customTone, setCustomTone] = useState('');
   const [targetAudience, setTargetAudience] = useState('intermediate');
   const [numChapters, setNumChapters] = useState<number | ''>('');
+  const [pagesPerChapter, setPagesPerChapter] = useState<number | ''>('');
   const [requirements, setRequirements] = useState('');
+  const [customFeatures, setCustomFeatures] = useState<string[]>([]);
 
   // Prompt preview state
   const [promptPreview, setPromptPreview] = useState<{
@@ -105,6 +109,7 @@ export default function BookPlanner() {
           tone: tone === 'custom' ? customTone : tone,
           target_audience: targetAudience,
           num_chapters: numChapters || null,
+          pages_per_chapter: pagesPerChapter || null,
           requirements: requirements || null,
           return_prompts: false
         })
@@ -123,8 +128,14 @@ export default function BookPlanner() {
           outlineStr = outlineStr.replace(/^```json\s*/i, '').replace(/\s*```$/,'').trim();
         }
 
+        // Parse the outline and override recommended_features if custom features are set
+        const parsedOutline = JSON.parse(outlineStr);
+        if (customFeatures.length > 0) {
+          parsedOutline.recommended_features = customFeatures;
+        }
+
         // Navigate to outline review with generated data
-        navigate('/create/outline', { state: { outline: JSON.parse(outlineStr) } });
+        navigate('/create/outline', { state: { outline: parsedOutline } });
       }
     } catch (error) {
       console.error('Error generating outline:', error);
@@ -318,6 +329,21 @@ export default function BookPlanner() {
                             />
                           </div>
                           <div className="space-y-2">
+                            <Label htmlFor="pagesPerChapter">Pages Per Chapter (Optional)</Label>
+                            <Input
+                              id="pagesPerChapter"
+                              type="number"
+                              placeholder="e.g., 10-20 pages (AI will decide if left empty)"
+                              value={pagesPerChapter}
+                              onChange={(e) => setPagesPerChapter(e.target.value ? parseInt(e.target.value) : '')}
+                              min={1}
+                              max={100}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Approximately 300 words per page
+                            </p>
+                          </div>
+                          <div className="space-y-2">
                             <Label htmlFor="requirements">Special Requirements (Optional)</Label>
                             <Textarea
                               id="requirements"
@@ -373,6 +399,33 @@ export default function BookPlanner() {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Jupyter Book Features */}
+              <Card className="shadow-card hover:shadow-card-hover transition-all duration-300 border-border/50">
+                <CardHeader>
+                  <CardTitle className="text-lg">Jupyter Book Features</CardTitle>
+                  <CardDescription>Customize which features to include</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    onClick={() => setShowFeatureSelector(true)}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    {customFeatures.length > 0
+                      ? `${customFeatures.length} Custom Features`
+                      : selectedBookTypeData
+                      ? `${selectedBookTypeData.recommendedFeatures.length} Recommended`
+                      : 'Configure Features'}
+                  </Button>
+                  {customFeatures.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Using custom feature selection
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Actions */}
               <Card className="shadow-card hover:shadow-card-hover transition-all duration-300 border-border/50">
@@ -448,6 +501,22 @@ export default function BookPlanner() {
           estimatedCost={promptPreview.estimated_cost}
           onClose={() => setShowPromptEditor(false)}
           onGenerate={handleGenerateOutline}
+        />
+      )}
+
+      {/* Feature Selector Modal */}
+      {showFeatureSelector && (
+        <FeatureSelector
+          onClose={() => setShowFeatureSelector(false)}
+          onConfirm={(features) => {
+            setCustomFeatures(features);
+            setShowFeatureSelector(false);
+          }}
+          initialSelected={
+            customFeatures.length > 0
+              ? customFeatures
+              : selectedBookTypeData?.recommendedFeatures || []
+          }
         />
       )}
     </div>

@@ -33,10 +33,22 @@ from ai_provider import get_ai_provider
 
 app = FastAPI(title="LiquidBooks API")
 
-# CORS middleware
+# CORS middleware - allow local development and production domains
+allowed_origins = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "http://localhost:3000",
+]
+
+# Add production frontend URL from environment variable
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url:
+    allowed_origins.append(frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -105,6 +117,7 @@ class GenerateOutlineRequest(BaseModel):
     tone: str
     target_audience: str
     num_chapters: Optional[int] = None
+    pages_per_chapter: Optional[int] = None
     requirements: Optional[str] = None
     custom_system_prompt: Optional[str] = None
     custom_user_prompt: Optional[str] = None
@@ -163,25 +176,107 @@ def generate_config_yml(book: Book, book_dir: Path, features: Optional[List[str]
         features = []
 
     # Map features to required Sphinx extensions
+    # Features with empty lists are built into MyST/Sphinx/Jupyter Book
     feature_extensions_map = {
-        'quizzes': ['jupyterquiz'],
-        'cards': ['sphinx_design'],
-        'grids': ['sphinx_design'],
-        'tabs': ['sphinx_design'],
-        'dropdowns': ['sphinx_design'],
-        'theorems': ['sphinx_proof'],
-        'mermaid_diagrams': ['sphinxcontrib.mermaid'],
-        'citations': [],  # Built into MyST
-        'math_equations': [],  # Built into MyST
-        'figures': [],  # Built into MyST
-        'tables': [],  # Built into MyST
+        # Basic Content Features
         'admonitions': [],  # Built into MyST
-        'code_blocks': [],  # Built into MyST
-        'code_cell_tags': [],  # Built into MyST
-        'cross_references': [],  # Built into MyST
+        'dropdowns': ['sphinx_togglebutton'],
+        'admonition_dropdowns': ['sphinx_togglebutton'],
+        'definition_lists': [],  # MyST extension: deflist
+        'blockquotes': [],  # Built into MyST
+        'epigraphs': [],  # Built into Sphinx
+        'glossary': [],  # Built into Sphinx
+        'footnotes': [],  # Built into MyST
+        'sidebar': [],  # Built into Sphinx
+        'margin_notes': [],  # Built into Sphinx
+
+        # Code Features
+        'code_blocks': ['sphinx_copybutton'],
+        'code_execution': [],  # Built into Jupyter Book
+        'code_cell_tags': [],  # Built into MyST-NB
+        'output_gluing': [],  # Built into MyST-NB
+        'thebe': ['sphinx_thebe'],
+        'binder_buttons': [],  # Config-based
+        'scroll_output': [],  # CSS-based
+        'line_numbers': [],  # Built into Sphinx
+
+        # Math Features
+        'math_equations': [],  # MyST extension: dollarmath
+        'amsmath': [],  # MyST extension: amsmath
+        'math_labels': [],  # Built into MyST
+        'theorems': ['sphinx_proof'],
+        'proofs': ['sphinx_proof'],
+        'algorithms': ['sphinx_proof'],
+        'lemmas': ['sphinx_proof'],
+        'corollaries': ['sphinx_proof'],
+        'definitions': ['sphinx_proof'],
+
+        # Sphinx Design Components
+        'grids': ['sphinx_design'],
+        'cards': ['sphinx_design'],
+        'tabs': ['sphinx_design'],
+        'badges': ['sphinx_design'],
+        'buttons': ['sphinx_design'],
+        'icons': ['sphinx_design'],
+        'grid_cards': ['sphinx_design'],
+        'custom_divs': [],  # Built into MyST
+
+        # Visual & Diagrams
+        'figures': [],  # Built into MyST
+        'images': [],  # Built into MyST
+        'html_images': [],  # MyST extension: html_image
+        'mermaid_diagrams': ['sphinxcontrib.mermaid'],
+        'tables': [],  # Built into MyST
+
+        # Interactive Features
+        'quizzes': ['jupyterquiz'],
+        'exercise': ['sphinx_exercise'],
+        'interactive_plots': [],  # Via code execution
+        'widgets': [],  # Via Jupyter
+
+        # MyST Extensions (handled separately in myst_enable_extensions)
+        'colon_fence': [],  # MyST extension
+        'substitutions': [],  # MyST extension: substitution
+        'smartquotes': [],  # MyST extension
+        'linkify': [],  # MyST extension
+        'replacements': [],  # MyST extension
+        'tasklists': [],  # MyST extension: tasklist
+        'html_admonition': [],  # MyST extension
+        'attrs_inline': [],  # MyST extension
+        'attrs_block': [],  # MyST extension
+
+        # References & Citations
+        'cross_references': [],  # Built into Sphinx
+        'target_headers': [],  # Built into MyST
+        'citations': ['sphinxcontrib.bibtex'],
+        'numbered_references': [],  # Built into Sphinx
+
+        # Advanced Features
+        'line_comments': [],  # Built into MyST
+        'block_breaks': [],  # Built into MyST
+        'html_blocks': [],  # Built into MyST
+        'reference_style_links': [],  # Built into MyST
+        'thematic_breaks': [],  # Built into MyST
     }
 
-    # Collect unique extensions based on enabled features
+    # Map MyST feature IDs to MyST extension names
+    myst_feature_map = {
+        'math_equations': 'dollarmath',
+        'amsmath': 'amsmath',
+        'colon_fence': 'colon_fence',
+        'definition_lists': 'deflist',
+        'html_images': 'html_image',
+        'linkify': 'linkify',
+        'replacements': 'replacements',
+        'smartquotes': 'smartquotes',
+        'substitutions': 'substitution',
+        'tasklists': 'tasklist',
+        'html_admonition': 'html_admonition',
+        'attrs_inline': 'attrs_inline',
+        'attrs_block': 'attrs_block',
+    }
+
+    # Collect unique Sphinx extensions based on enabled features
     extensions = set()
     for feature in features:
         if feature in feature_extensions_map:
@@ -191,30 +286,42 @@ def generate_config_yml(book: Book, book_dir: Path, features: Optional[List[str]
     extensions.add('sphinx_copybutton')  # Copy button for code blocks
     extensions.add('sphinx_togglebutton')  # Toggle buttons for content
 
+    # Remove empty strings (from features with no Sphinx extension)
+    extensions.discard('')
+
     # Build extensions list string
     extensions_yaml = ""
     if extensions:
         extensions_yaml = "\n    - " + "\n    - ".join(sorted(extensions))
 
-    # MyST extensions - enable all MyST features
-    myst_extensions = [
-        "amsmath",  # Math support
-        "colon_fence",  # ::: fences
-        "deflist",  # Definition lists
-        "dollarmath",  # Dollar math
-        "html_image",  # HTML images
-        "linkify",  # Auto-link URLs
-        "replacements",  # Text replacements
-        "smartquotes",  # Smart quotes
-        "substitution",  # Variable substitution
-        "tasklist",  # Task lists
-    ]
+    # Collect MyST extensions based on enabled features
+    myst_extensions = set()
+    for feature in features:
+        if feature in myst_feature_map:
+            myst_extensions.add(myst_feature_map[feature])
 
-    myst_yaml = "\n      - " + "\n      - ".join(myst_extensions)
+    # Build MyST extensions YAML
+    myst_yaml = ""
+    if myst_extensions:
+        myst_yaml = "\n      - " + "\n      - ".join(sorted(myst_extensions))
+
+    # Get copyright year from publishing info or use current year
+    from datetime import datetime
+    copyright_year = book.get('publishingInfo', {}).get('yearOfPublication') if isinstance(book, dict) else getattr(book, 'publishingInfo', {}).get('yearOfPublication') if hasattr(book, 'publishingInfo') and book.publishingInfo else None
+    if not copyright_year:
+        copyright_year = str(datetime.now().year)
+
+    # Get author name to display (pen name if available, otherwise author)
+    author_display = book.author
+    if hasattr(book, 'publishingInfo') and book.publishingInfo:
+        publishing_info = book.publishingInfo if isinstance(book.publishingInfo, dict) else book.publishingInfo.__dict__
+        if publishing_info.get('showAuthorName') and publishing_info.get('penName'):
+            author_display = publishing_info.get('penName')
 
     config_content = f"""# Book settings
 title: "{book.title}"
-author: "{book.author}"
+author: "{author_display}"
+copyright: "{copyright_year}"
 logo: ""
 
 # Force re-execution of notebooks on each build
@@ -280,19 +387,178 @@ sphinx:
     (book_dir / "_config.yml").write_text(config_content)
 
 
+def generate_copyright_page(book: Book) -> str:
+    """Generate copyright page content"""
+    content = "# Copyright\n\n"
+
+    # Get publishing info
+    publishing_info = {}
+    legal_clauses = {}
+
+    if hasattr(book, 'publishingInfo') and book.publishingInfo:
+        publishing_info = book.publishingInfo if isinstance(book.publishingInfo, dict) else book.publishingInfo.__dict__
+
+    if hasattr(book, 'legalClauses') and book.legalClauses:
+        legal_clauses = book.legalClauses if isinstance(book.legalClauses, dict) else book.legalClauses.__dict__
+
+    # Title and author
+    author_name = publishing_info.get('penName', book.author)
+    year = publishing_info.get('yearOfPublication', str(__import__('datetime').datetime.now().year))
+
+    content += f"**{book.title}**\n\n"
+
+    if publishing_info.get('showAuthorName', True):
+        content += f"by {author_name}\n\n"
+
+    # Edition and publication info
+    if publishing_info.get('edition'):
+        content += f"{publishing_info.get('edition')}\n\n"
+
+    # Copyright statement
+    content += f"Copyright © {year}"
+    if publishing_info.get('showAuthorName', True):
+        content += f" by {author_name}"
+    content += "\n\n"
+
+    # Legal clauses
+    if legal_clauses.get('allRightsReserved', True):
+        content += "All rights reserved. No part of this publication may be reproduced, distributed, or transmitted in any form or by any means, including photocopying, recording, or other electronic or mechanical methods, without the prior written permission of the publisher, except in the case of brief quotations embodied in critical reviews and certain other noncommercial uses permitted by copyright law.\n\n"
+
+    if legal_clauses.get('fiction'):
+        content += "This is a work of fiction. Names, characters, places, and incidents either are the product of the author's imagination or are used fictitiously. Any resemblance to actual persons, living or dead, events, or locales is entirely coincidental.\n\n"
+
+    if legal_clauses.get('moralRights'):
+        content += f"The moral right of {author_name} to be identified as the author of this work has been asserted in accordance with applicable copyright laws.\n\n"
+
+    if legal_clauses.get('externalContent'):
+        content += "External content and quotations are used under fair use provisions or with permission. All trademarks mentioned in this book are the property of their respective owners.\n\n"
+
+    if legal_clauses.get('designations'):
+        content += "Designations used by companies to distinguish their products are often claimed as trademarks. All brand names and product names used in this book are trade names, service marks, trademarks, or registered trademarks of their respective owners.\n\n"
+
+    # Publisher info
+    if publishing_info.get('publisherName'):
+        content += f"Published by {publishing_info.get('publisherName')}\n\n"
+
+    # ISBNs
+    isbns = publishing_info.get('isbns', {})
+    if any(isbns.values() if isinstance(isbns, dict) else []):
+        content += "**ISBN Information:**\n\n"
+        if isinstance(isbns, dict):
+            if isbns.get('epub'):
+                content += f"- EPUB: {isbns.get('epub')}\n"
+            if isbns.get('kindle'):
+                content += f"- Kindle: {isbns.get('kindle')}\n"
+            if isbns.get('paperback'):
+                content += f"- Paperback: {isbns.get('paperback')}\n"
+            if isbns.get('hardcover'):
+                content += f"- Hardcover: {isbns.get('hardcover')}\n"
+            if isbns.get('pdf'):
+                content += f"- PDF: {isbns.get('pdf')}\n"
+        content += "\n"
+
+    # Collaborators
+    collaborators = publishing_info.get('collaborators', [])
+    if collaborators:
+        content += "**Credits:**\n\n"
+        for collab in collaborators:
+            if isinstance(collab, dict):
+                content += f"- {collab.get('role', 'Contributor')}: {collab.get('name', 'Unknown')}\n"
+        content += "\n"
+
+    return content
+
+
+def generate_front_matter_pages(book: Book) -> dict:
+    """Generate front matter pages (epigraph, foreword, dedication, preface, acknowledgements)"""
+    pages = {}
+
+    publishing_info = {}
+    if hasattr(book, 'publishingInfo') and book.publishingInfo:
+        publishing_info = book.publishingInfo if isinstance(book.publishingInfo, dict) else book.publishingInfo.__dict__
+
+    # Epigraph
+    if publishing_info.get('epigraph'):
+        pages['epigraph'] = f"# Epigraph\n\n{publishing_info.get('epigraph')}\n"
+
+    # Foreword
+    if publishing_info.get('foreword'):
+        pages['foreword'] = f"# Foreword\n\n{publishing_info.get('foreword')}\n"
+
+    # Dedication
+    if publishing_info.get('dedication'):
+        pages['dedication'] = f"# Dedication\n\n{publishing_info.get('dedication')}\n"
+
+    # Preface
+    if publishing_info.get('preface'):
+        pages['preface'] = f"# Preface\n\n{publishing_info.get('preface')}\n"
+
+    # Acknowledgements
+    if publishing_info.get('acknowledgements'):
+        pages['acknowledgements'] = f"# Acknowledgements\n\n{publishing_info.get('acknowledgements')}\n"
+
+    return pages
+
+
+def generate_back_matter_pages(book: Book) -> dict:
+    """Generate back matter pages (about the author, also by the author)"""
+    pages = {}
+
+    publishing_info = {}
+    if hasattr(book, 'publishingInfo') and book.publishingInfo:
+        publishing_info = book.publishingInfo if isinstance(book.publishingInfo, dict) else book.publishingInfo.__dict__
+
+    # About the Author
+    if publishing_info.get('aboutTheAuthor'):
+        pages['about_the_author'] = f"# About the Author\n\n{publishing_info.get('aboutTheAuthor')}\n"
+
+    # Also by the Author
+    if publishing_info.get('alsoByTheAuthor'):
+        pages['also_by_the_author'] = f"# Also by the Author\n\n{publishing_info.get('alsoByTheAuthor')}\n"
+
+    return pages
+
+
 def generate_toc_yml(book: Book, book_dir: Path):
-    """Generate Jupyter Book _toc.yml"""
+    """Generate Jupyter Book _toc.yml with front matter, chapters, and back matter"""
     sorted_chapters = sorted(book.chapters, key=lambda x: x.order)
 
     toc_content = "format: jb-book\n"
     toc_content += "root: intro\n"
     toc_content += "chapters:\n"
 
+    # Add copyright page if publishing info exists
+    publishing_info = {}
+    if hasattr(book, 'publishingInfo') and book.publishingInfo:
+        publishing_info = book.publishingInfo if isinstance(book.publishingInfo, dict) else book.publishingInfo.__dict__
+
+    # Add copyright page
+    toc_content += "  - file: copyright\n"
+
+    # Add front matter pages (epigraph, foreword, dedication, preface, acknowledgements)
+    if publishing_info.get('epigraph'):
+        toc_content += "  - file: epigraph\n"
+    if publishing_info.get('foreword'):
+        toc_content += "  - file: foreword\n"
+    if publishing_info.get('dedication'):
+        toc_content += "  - file: dedication\n"
+    if publishing_info.get('preface'):
+        toc_content += "  - file: preface\n"
+    if publishing_info.get('acknowledgements'):
+        toc_content += "  - file: acknowledgements\n"
+
+    # Add main chapters
     for i, chapter in enumerate(sorted_chapters):
         if i == 0:
-            continue  # Skip first chapter as it's the root
+            continue  # Skip first chapter as it's the root (intro)
         filename = sanitize_filename(chapter.title)
         toc_content += f"  - file: {filename}\n"
+
+    # Add back matter pages (about the author, also by the author)
+    if publishing_info.get('aboutTheAuthor'):
+        toc_content += "  - file: about_the_author\n"
+    if publishing_info.get('alsoByTheAuthor'):
+        toc_content += "  - file: also_by_the_author\n"
 
     (book_dir / "_toc.yml").write_text(toc_content)
 
@@ -339,11 +605,50 @@ def build_jupyter_book(book_dir: Path) -> dict:
         }
 
 
+def generate_readme(book: Book, username: str, repo_name: str) -> str:
+    """Generate README.md content for the deployed book"""
+    gh_pages_url = f"https://{username}.github.io/{repo_name}"
+
+    content = f"# {book.title}\n\n"
+
+    if book.author:
+        content += f"**Author:** {book.author}\n\n"
+
+    if book.description:
+        content += f"{book.description}\n\n"
+
+    content += f"## View the Book\n\n"
+    content += f"📖 **[Read the book online]({gh_pages_url})**\n\n"
+
+    content += f"This interactive book was built using [Jupyter Book](https://jupyterbook.org/) and [LiquidBooks](https://github.com/yourusername/liquidbooks).\n\n"
+
+    # Add publishing info if available
+    publishing_info = {}
+    if hasattr(book, 'publishingInfo') and book.publishingInfo:
+        publishing_info = book.publishingInfo if isinstance(book.publishingInfo, dict) else book.publishingInfo.__dict__
+
+    if publishing_info.get('yearOfPublication'):
+        content += f"**Published:** {publishing_info.get('yearOfPublication')}\n\n"
+
+    if publishing_info.get('edition'):
+        content += f"**Edition:** {publishing_info.get('edition')}\n\n"
+
+    # Add chapter count
+    if book.chapters:
+        content += f"**Chapters:** {len(book.chapters)}\n\n"
+
+    content += "---\n\n"
+    content += f"*Generated with LiquidBooks - AI-powered book creation platform*\n"
+
+    return content
+
+
 def deploy_to_github(
     book_dir: Path,
     username: str,
     token: str,
     repo_name: str,
+    book: Book = None,
 ) -> dict:
     """Deploy built book to GitHub Pages"""
     import subprocess
@@ -456,6 +761,12 @@ def deploy_to_github(
             # Add .nojekyll file to prevent Jekyll processing
             (temp_git_path / ".nojekyll").touch()
             print(f"[GitHub Deploy] Added .nojekyll file")
+
+            # Generate and add README.md if book object is provided
+            if book:
+                readme_content = generate_readme(book, username, repo_name)
+                (temp_git_path / "README.md").write_text(readme_content)
+                print(f"[GitHub Deploy] Added README.md with book information")
 
             # Configure git
             subprocess.run(
@@ -779,6 +1090,7 @@ async def generate_outline(request: GenerateOutlineRequest):
             tone=request.tone,
             target_audience=request.target_audience,
             num_chapters=request.num_chapters,
+            pages_per_chapter=request.pages_per_chapter,
             requirements=request.requirements,
             custom_prompt=request.custom_user_prompt
         )
@@ -882,7 +1194,11 @@ CONTINUITY CONTEXT:
 {f"Connection to Next: {connection_to_next}" if connection_to_next else ""}
 
 Write in {tone} tone for {target_audience} audience.
-Target approximately {estimated_words} words.
+
+CRITICAL WORD COUNT REQUIREMENT:
+You MUST write between {int(estimated_words * 0.9)} and {int(estimated_words * 1.1)} words.
+Target: {estimated_words} words.
+This is a strict requirement - do not significantly exceed or fall short of this range.
 """
 
         # Build comprehensive user prompt
@@ -907,7 +1223,10 @@ Follow the {chapter_template} template structure.
 Use MyST Markdown syntax with appropriate Jupyter Book features.
 Make it engaging, clear, and valuable for the target audience.{additional_text}
 
-Return ONLY the chapter content in MyST Markdown format, starting with the chapter title as # heading."""
+IMPORTANT: Start the chapter with the heading formatted as:
+# Chapter {chapter_number}: {chapter_title}
+
+Return ONLY the chapter content in MyST Markdown format."""
 
         # Call AI
         ai = get_ai_provider()
@@ -1215,6 +1534,20 @@ async def build_book(request: BuildRequest):
         generate_toc_yml(request.book, temp_dir)
         write_chapters(request.book, temp_dir)
 
+        # Generate and write copyright page
+        copyright_content = generate_copyright_page(request.book)
+        (temp_dir / "copyright.md").write_text(copyright_content)
+
+        # Generate and write front matter pages
+        front_matter = generate_front_matter_pages(request.book)
+        for filename, content in front_matter.items():
+            (temp_dir / f"{filename}.md").write_text(content)
+
+        # Generate and write back matter pages
+        back_matter = generate_back_matter_pages(request.book)
+        for filename, content in back_matter.items():
+            (temp_dir / f"{filename}.md").write_text(content)
+
         # Create references.bib (empty for now)
         (temp_dir / "references.bib").write_text("")
 
@@ -1235,6 +1568,7 @@ async def build_book(request: BuildRequest):
                 request.github_username,
                 request.github_token,
                 request.repo_name,
+                request.book,
             )
 
             if deploy_result["success"]:
