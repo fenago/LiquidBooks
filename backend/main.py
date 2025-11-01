@@ -2004,79 +2004,107 @@ async def generate_single_avatar(request: dict):
     """
     Generate a SINGLE avatar for ONE awareness stage (much faster UX)
     This is called 5 times sequentially instead of generating all at once
+    Accepts optional custom_system_prompt and custom_user_prompt_template
     """
     try:
         prompt = request.get('prompt', '')
         stage = request.get('stage', 'problem_aware')
+        custom_system_prompt = request.get('custom_system_prompt', '')
+        custom_user_prompt_template = request.get('custom_user_prompt_template', '')
 
         ai = get_ai_provider()
 
-        # Detailed prompt matching the reference format
-        single_avatar_prompt = f"""{prompt}
+        # Use custom user prompt template if provided, otherwise use default
+        if custom_user_prompt_template:
+            # Replace {{stage}} placeholder with actual stage
+            single_avatar_prompt = custom_user_prompt_template.replace('{{stage}}', stage.replace('_', ' ').upper())
+            # Prepend the user's offer prompt
+            single_avatar_prompt = f"""{prompt}
 
-Generate ONLY the {stage.replace('_', ' ').upper()} avatar. Create an extremely detailed customer avatar following this EXACT structure.
+{single_avatar_prompt}"""
+        else:
+            # Default detailed prompt matching the reference format
+            single_avatar_prompt = f"""{prompt}
+
+Generate ONLY the {stage.replace('_', ' ').upper()} avatar. Create an extremely detailed, robust customer avatar following this EXACT structure.
+
+You MUST make this avatar come ALIVE with extreme specificity. Include real numbers, real brand names, real movie titles, real book titles, real locations. Be as detailed as the example of David Chen, the Problem Aware Attorney.
 
 Return ONLY valid JSON (no markdown, no code blocks):
 
 {{
   "stage": "{stage}",
-  "name": "First Last Name",
-  "tagline": "Brief one-sentence description",
+  "name": "First Last Name (use a realistic, specific name)",
+  "tagline": "A compelling one-sentence description that captures their situation",
   "who_are_they": {{
+    "name": "Same as above",
+    "age": "Specific age (e.g., 42)",
     "gender": "Male/Female/Non-binary",
-    "job": "Detailed job title and context",
-    "household_income": "Specific income with context",
-    "marital_status": "Status with family details",
-    "education_level": "Education background"
+    "location": "Specific city and state/country (e.g., Austin, Texas)",
+    "job": "Extremely detailed job title with company context - be specific (e.g., 'Owner/Partner at a small law firm, Chen & Associates, 3 attorneys total' NOT just 'lawyer')",
+    "household_income": "Very specific income with detailed context explaining cash flow, expenses, financial pressures (e.g., 'Approximately $175,000/year - firm revenue is around $400,000, but with high overhead and partner draws, take-home is modest. Constantly feeling cash flow pressure.')",
+    "marital_status": "Detailed status with family specifics (e.g., 'Married with two young children, ages 5 and 8')",
+    "education_level": "Specific education background with institution type (e.g., 'Juris Doctor from a respectable, but not top-tier, law school')"
   }},
   "what_they_do_like": {{
-    "brands_they_wear": ["Brand 1 (why)", "Brand 2 (why)", "Brand 3 (why)"],
-    "hobbies": ["Hobby 1 (why/how often)", "Hobby 2 (why/how often)"],
-    "favorite_movies": ["Movie 1", "Movie 2", "Movie 3", "Movie 4", "Movie 5"],
-    "favorite_books": ["Book 1", "Book 2", "Book 3", "Book 4", "Book 5"],
-    "visited_websites": ["Site 1 (why)", "Site 2 (why)", "Site 3 (why)", "Site 4 (why)", "Site 5 (why)"],
-    "social_influencers": ["Influencer 1 (why)", "Influencer 2 (why)", "Influencer 3 (why)"]
+    "brands_they_wear": ["REAL Brand 1 with detailed explanation (e.g., 'Brooks Brothers for court appearances')", "REAL Brand 2 (why)", "REAL Brand 3 (why) - Include context about price consciousness or values"],
+    "hobbies": ["Hobby 1 with frequency and social context (e.g., 'Golf though rarely has time to play more than a few times a year')", "Hobby 2 (e.g., 'Coaching son's Little League team - main social outlet and way to de-stress')"],
+    "favorite_movies": ["REAL Movie Title 1", "REAL Movie Title 2", "REAL Movie Title 3", "REAL Movie Title 4", "REAL Movie Title 5 - explain what draws them to these"],
+    "favorite_books": ["REAL Book Title 1 by Author", "REAL Book Title 2 by Author", "REAL Book Title 3", "REAL Book Title 4", "REAL Book Title 5"],
+    "visited_websites": ["REAL Site 1 (specific reason)", "REAL Site 2", "REAL Site 3", "REAL Site 4", "REAL Site 5"],
+    "social_influencers": ["REAL Influencer 1 (specific reason why they follow)", "REAL Influencer 2", "REAL Influencer 3 plus local business leaders"]
   }},
   "why_are_they": {{
-    "personality_traits": "Paragraph describing main personality traits",
-    "major_values": ["Value 1: explanation", "Value 2: explanation", "Value 3: explanation", "Value 4: explanation", "Value 5: explanation"],
-    "life_victories": ["Victory 1: detailed story", "Victory 2: detailed story"],
-    "life_failures": ["Failure 1: detailed story", "Failure 2: detailed story"]
+    "personality_traits": "Rich, detailed paragraph describing main personality traits with specific examples (e.g., 'Ambitious, driven, deeply committed to clients. Also pragmatic, risk-averse, and often stressed. Strong sense of responsibility to family and employees. Classic doer who has hard time delegating.')",
+    "major_values": ["Value 1 with detailed explanation (e.g., 'Justice: Genuinely believes in the work and wants to help clients')", "Value 2 (e.g., 'Autonomy: Started own firm to be own boss')", "Value 3 (Financial Security)", "Value 4 (Reputation)", "Value 5 (Efficiency)"],
+    "life_victories": ["Victory 1: Specific detailed story with context and outcome", "Victory 2: Another specific victory with emotional weight"],
+    "life_failures": ["Failure 1: Specific detailed story that still affects them (e.g., 'Previous business partnership that ended badly, cost money and friendship')", "Failure 2: Personal failure that creates ongoing guilt"]
   }},
   "smart_market_questions": {{
-    "keeps_awake_at_night": "Detailed paragraph about their 3am worries",
-    "secretly_afraid_of": "Deep fear paragraph",
-    "angry_about": "What/who they're frustrated with",
-    "daily_frustrations": ["Frustration 1: specific example", "Frustration 2: specific example", "Frustration 3: specific example"],
-    "secret_desire": "Their biggest dream/wish",
-    "decision_bias": "How they make purchasing decisions",
-    "unique_language": "Common phrases/jargon they use",
-    "complaints_about_solutions": ["Complaint 1: why it fails", "Complaint 2: why it fails", "Complaint 3: why it fails"]
+    "keeps_awake_at_night": "Extremely detailed paragraph about specific 3am worries with concrete examples (e.g., 'Constant worry about cash flow. Did he bill enough hours this month? Will clients pay invoices on time? Can he make payroll and still have enough for family? Worries about missing critical client call and losing case to competitor.')",
+    "secretly_afraid_of": "Deep, vulnerable fear paragraph with specific outcomes they dread",
+    "angry_about": "Specific frustrations and who/what they blame - be detailed and emotional",
+    "daily_frustrations": ["Frustration 1: Vivid, specific example that happens regularly", "Frustration 2: Another concrete daily pain point", "Frustration 3: Third specific frustration with emotional impact"],
+    "secret_desire": "Their deepest, most personal dream - be specific (e.g., 'Law firm that runs itself so he can focus on high-level strategy and still be home for dinner every night')",
+    "decision_bias": "Detailed explanation of their decision-making process, past burns, trust factors (e.g., 'Very skeptical of new technology and quick fixes. Been burned by expensive, difficult software. Makes decisions on clear ROI and recommendations from trusted lawyers.')",
+    "unique_language": "Actual specific phrases/jargon they use daily - use quotes (e.g., 'Billable hours, retainer, discovery, motion to dismiss, client intake, conflict check')",
+    "complaints_about_solutions": ["Complaint 1: Specific existing solution and why it fails them", "Complaint 2: Another specific complaint", "Complaint 3: Third complaint with why it doesn't work"]
   }},
   "going_deep": {{
-    "negative_emotions": ["Emotion 1: when/why felt", "Emotion 2: when/why felt", "Emotion 3: when/why felt"],
-    "positive_emotions_from_solution": ["Emotion 1: transformation", "Emotion 2: transformation", "Emotion 3: transformation"],
-    "beliefs_about_world": ["Belief 1", "Belief 2", "Belief 3"],
-    "lifestyle_desire": "Ultimate lifestyle goal"
+    "negative_emotions": ["Emotion 1: Detailed description of when and why felt with specific triggering situations (e.g., 'Anxiety: Every time he opens bank account on Friday afternoons before making payroll, feels chest tightness and racing thoughts')", "Emotion 2: Another specific negative emotion with concrete context", "Emotion 3: Third emotion with real-world trigger"],
+    "positive_emotions_from_solution": ["Emotion 1: Specific transformation with before/after contrast (e.g., 'Relief: From constant 3am money anxiety to sleeping through the night knowing clients are paying automatically')", "Emotion 2: Another concrete emotional transformation", "Emotion 3: Third transformation with vivid description"],
+    "beliefs_about_world": ["Belief 1: Specific worldview with explanation (e.g., 'Hard work always pays off - though starting to question this as he works 60-hour weeks with little to show for it')", "Belief 2: Another specific belief about how things work", "Belief 3: Third belief that shapes their decisions"],
+    "lifestyle_desire": "Extremely detailed ultimate lifestyle vision - be specific about time, money, relationships, daily routine (e.g., 'Run a law firm that operates smoothly without him micromanaging everything. Work 40 hours per week max, make $250k+ per year, home by 6pm for family dinner every night, weekends completely free, respected in legal community, financially secure enough to send both kids to college without loans.')"
   }},
   "purchasing_habits": {{
-    "price_tolerance": "What they'd pay and why - be specific with dollar amounts",
-    "purchase_triggers": "Detailed explanation of what triggers them to buy - emotional and logical factors",
-    "common_objections": "Detailed list of objections they typically have before purchasing"
+    "price_tolerance": "Very specific price range with detailed reasoning and context (e.g., 'Would pay up to $300/month for a solution that demonstrably saves him 10+ hours per week or increases revenue by $2,000+/month. Extremely price-sensitive below that threshold. Has been burned by $5,000+ software purchases that promised everything but delivered little. Prefers monthly subscriptions over large upfront costs due to cash flow concerns.')",
+    "purchase_triggers": "Detailed multi-paragraph explanation covering: emotional triggers (pain points that finally break them), logical triggers (ROI calculations, peer recommendations), timing factors (quarterly reviews, tax season), and specific proof needed before buying (e.g., 'Needs to see 3 things before buying: (1) testimonial from another small law firm owner he trusts, (2) free trial or demo showing it actually works with his specific workflow, (3) clear breakdown showing time saved or revenue gained will justify cost within 90 days. Emotional trigger is usually a crisis moment - missed deadline, lost client, or particularly bad week where everything falls apart.')",
+    "common_objections": "Detailed list of 5+ specific objections with exact phrasing (e.g., 'Too expensive for what I get', 'Looks complicated - don\\'t have time to learn new software', 'What if it doesn\\'t integrate with my current case management system?', 'How do I know it will actually work for a small firm like mine vs big corporate firms?', 'What happens to my data if I cancel?', 'Been burned before by software that promised too much')"
   }},
   "primary_wants": {{
-    "wants_to_gain": "Specific gains they seek - be detailed and concrete",
-    "wants_to_avoid": "Fears/risks to prevent - be specific about what keeps them up at night"
+    "wants_to_gain": "Multiple specific, concrete gains with emotional weight - use bullet points or detailed paragraph (e.g., 'Time: Specifically wants 15+ hours back per week to spend with family and on business development, not administrative tasks. Money: Clear path to $250k+ annual income with predictable cash flow. Respect: Recognition as successful attorney in local legal community. Peace of mind: End the 3am anxiety about money and missed details. Control: Systems that work without constant supervision. Growth: Ability to take on 30% more clients without working more hours or hiring expensive staff.')",
+    "wants_to_avoid": "Detailed fears and risks with specific nightmare scenarios (e.g., 'Missing critical deadline and getting sued for malpractice - this is the ultimate nightmare that keeps him up at night. Losing firm due to cash flow crisis - has seen other solo attorneys go bankrupt. Burning out and resenting the career he once loved. Disappointing his family by working constant evenings and weekends. Being seen as a failure by peers or family. Getting stuck in survival mode forever with no path to growth. Making a major financial mistake like bad software purchase or bad hire that sets him back years.')"
   }},
   "empathy_map": {{
-    "thinks": ["Internal thought 1", "Internal thought 2", "Internal thought 3", "Internal thought 4", "Internal thought 5"],
-    "feels": ["Emotion/feeling 1", "Emotion/feeling 2", "Emotion/feeling 3", "Emotion/feeling 4"],
-    "says": ["Quote they say 1", "Quote they say 2", "Quote they say 3", "Quote they say 4"],
-    "does": ["Action/behavior 1", "Action/behavior 2", "Action/behavior 3", "Action/behavior 4", "Action/behavior 5"]
+    "thinks": ["Internal thought 1: Specific recurring thought with context (e.g., 'I should have gone into corporate law - at least I\\'d have predictable hours and steady paycheck')", "Internal thought 2: Another specific thought (e.g., 'Am I billing enough hours this month to cover expenses?')", "Internal thought 3: Self-doubt or worry (e.g., 'What if clients find a better lawyer and leave me?')", "Internal thought 4: Hope or aspiration (e.g., 'If I could just get 5 more retainer clients, everything would stabilize')", "Internal thought 5: Decision-making thought (e.g., 'Is this expense really necessary or am I just being sold to?')"],
+    "feels": ["Emotion/feeling 1: Specific emotional state with trigger (e.g., 'Overwhelmed - drowning in administrative tasks while trying to practice law')", "Emotion/feeling 2: Another emotion (e.g., 'Guilty about missing kids\\' events due to work')", "Emotion/feeling 3: Third feeling (e.g., 'Anxious about money despite working constantly')", "Emotion/feeling 4: Fourth feeling (e.g., 'Proud of helping clients but frustrated by business side')"],
+    "says": ["Quote 1: Exact phrase they say regularly (e.g., 'I don\\'t have time for this right now')", "Quote 2: Another common phrase (e.g., 'Let me check my calendar and get back to you')", "Quote 3: Complaint they voice (e.g., 'This software is supposed to make things easier, not harder')", "Quote 4: Aspiration they express (e.g., 'I just want to focus on practicing law, not running a business')"],
+    "does": ["Action 1: Specific daily behavior (e.g., 'Checks email obsessively - first thing in morning, between meetings, before bed - afraid of missing important client message')", "Action 2: Work pattern (e.g., 'Works from 7am to 7pm most days, then another 2 hours after kids go to bed')", "Action 3: Coping mechanism (e.g., 'Drinks 4-5 cups of coffee daily to stay alert through exhaustion')", "Action 4: Decision behavior (e.g., 'Researches purchases extensively, reads reviews, asks colleagues before buying anything over $100')", "Action 5: Stress response (e.g., 'Snaps at staff when overwhelmed, then feels guilty about it later')"]
   }}
 }}
 
 Be EXTREMELY specific and detailed. Use real names, real brands, real numbers. Make this person come alive.
+
+FINAL REMINDER: This avatar must be as detailed and robust as a real person you know personally. Include:
+- REAL brand names (Brooks Brothers, not "professional clothing brand")
+- REAL movie/book titles with authors
+- SPECIFIC numbers ($175,000/year, not "good income")
+- SPECIFIC locations (Austin, Texas, not "major city")
+- SPECIFIC ages (42, not "middle-aged")
+- VIVID details that make this person unforgettable
+- CONCRETE examples, not abstract descriptions
+
+Think: Would someone reading this avatar feel like they could pick this person out of a crowd and know exactly what motivates them? If not, add MORE detail.
 
 CRITICAL JSON FORMATTING RULES:
 1. Use double quotes for all strings
@@ -2088,9 +2116,15 @@ CRITICAL JSON FORMATTING RULES:
 7. Return ONLY valid JSON - no explanations before or after"""
 
         # Generate with enough tokens for detailed avatar
+        # Build messages array with optional custom system prompt
+        messages = []
+        if custom_system_prompt:
+            messages.append({"role": "system", "content": custom_system_prompt})
+        messages.append({"role": "user", "content": single_avatar_prompt})
+
         full_content = ""
         async for chunk in ai.chat_completion_stream(
-            messages=[{"role": "user", "content": single_avatar_prompt}],
+            messages=messages,
             temperature=0.8,
             max_tokens=16000  # Comprehensive avatar with ALL 8 sections fully detailed
         ):

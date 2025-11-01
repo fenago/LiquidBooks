@@ -11,7 +11,8 @@ import {
   Palette,
   Megaphone,
   Lightbulb,
-  Eye
+  Eye,
+  Settings
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -118,6 +119,9 @@ export default function AudienceResearch() {
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [customSystemPrompt, setCustomSystemPrompt] = useState('');
+  const [customUserPrompt, setCustomUserPrompt] = useState('');
+  const [showPromptEditor, setShowPromptEditor] = useState(false);
 
   const problemAwareStage = AWARENESS_STAGES.find(s => s.id === 'problem_aware');
 
@@ -476,7 +480,9 @@ export default function AudienceResearch() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               prompt: avatarPrompt,
-              stage: 'problem_aware'
+              stage: 'problem_aware',
+              ...(customSystemPrompt && { custom_system_prompt: customSystemPrompt }),
+              ...(customUserPrompt && { custom_user_prompt_template: customUserPrompt })
             })
           });
 
@@ -1307,7 +1313,7 @@ export default function AudienceResearch() {
                     </div>
 
                     {/* Generate Button */}
-                    <div className="flex justify-center mt-8 pt-6 border-t">
+                    <div className="flex justify-center items-center gap-3 mt-8 pt-6 border-t">
                       <Button
                         onClick={handleGenerate}
                         disabled={isGenerating}
@@ -1325,6 +1331,16 @@ export default function AudienceResearch() {
                             Discover My Audience & Generate Everything
                           </>
                         )}
+                      </Button>
+                      <Button
+                        onClick={() => setShowPromptEditor(true)}
+                        disabled={isGenerating}
+                        size="lg"
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        <Settings className="h-5 w-5" />
+                        Customize Prompts
                       </Button>
                     </div>
 
@@ -2713,6 +2729,73 @@ export default function AudienceResearch() {
           </Tabs>
         </motion.div>
       </div>
+
+      {/* Prompt Editor Dialog */}
+      <Dialog open={showPromptEditor} onOpenChange={setShowPromptEditor}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Customize Avatar Generation Prompts
+            </DialogTitle>
+            <DialogDescription>
+              Customize the system and user prompts used for avatar generation. Leave empty to use defaults.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                System Prompt (Optional)
+              </label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Override the default system instructions for the AI. This controls the overall behavior and context.
+              </p>
+              <Textarea
+                value={customSystemPrompt}
+                onChange={(e) => setCustomSystemPrompt(e.target.value)}
+                placeholder="Leave empty to use default system prompt..."
+                className="min-h-[120px] font-mono text-sm"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                User Prompt (Optional)
+              </label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Override the default user prompt template. This is the main instruction for avatar generation. Use {'{{stage}}'} as a placeholder for the awareness stage.
+              </p>
+              <Textarea
+                value={customUserPrompt}
+                onChange={(e) => setCustomUserPrompt(e.target.value)}
+                placeholder="Leave empty to use default user prompt template..."
+                className="min-h-[200px] font-mono text-sm"
+              />
+            </div>
+
+            <div className="flex justify-between items-center pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setCustomSystemPrompt('');
+                  setCustomUserPrompt('');
+                }}
+              >
+                Reset to Defaults
+              </Button>
+              <div className="flex gap-2">
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button>Save Prompts</Button>
+                </DialogClose>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Avatar Detail Modal */}
       {AvatarModal()}
