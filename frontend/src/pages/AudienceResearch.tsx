@@ -29,6 +29,8 @@ import {
   type OfferQuestion
 } from '../constants/avatarResearch';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 interface OfferResponses {
   [questionId: string]: string;
 }
@@ -469,7 +471,7 @@ export default function AudienceResearch() {
           }
           setGeneratingProgress(10 + (retryCount * 5));
 
-          const response = await fetch('http://localhost:8000/api/ai/generate-single-avatar', {
+          const response = await fetch(`${API_BASE_URL}/api/ai/generate-single-avatar`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -586,7 +588,7 @@ export default function AudienceResearch() {
       for (const diaryType of ['before', 'during', 'after']) {
         setGeneratingStep(`📖 Writing diary entry: ${diaryType.replace('_', ' ')}...`);
 
-        const diaryResponse = await fetch('http://localhost:8000/api/ai/generate-avatar-diary', {
+        const diaryResponse = await fetch(`${API_BASE_URL}/api/ai/generate-avatar-diary`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -631,7 +633,7 @@ export default function AudienceResearch() {
     try {
       const problemAwareAvatar = researchData.allAvatars.problem_aware;
 
-      const brandResponse = await fetch('http://localhost:8000/api/ai/generate-brand-identity', {
+      const brandResponse = await fetch(`${API_BASE_URL}/api/ai/generate-brand-identity`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -675,7 +677,7 @@ export default function AudienceResearch() {
     try {
       const problemAwareAvatar = researchData.allAvatars.problem_aware;
 
-      const landingPageResponse = await fetch('http://localhost:8000/api/ai/generate-landing-page-spec', {
+      const landingPageResponse = await fetch(`${API_BASE_URL}/api/ai/generate-landing-page-spec`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -720,7 +722,7 @@ export default function AudienceResearch() {
     try {
       const problemAwareAvatar = researchData.allAvatars.problem_aware;
 
-      const marketingResponse = await fetch('http://localhost:8000/api/ai/generate-marketing-assets', {
+      const marketingResponse = await fetch(`${API_BASE_URL}/api/ai/generate-marketing-assets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

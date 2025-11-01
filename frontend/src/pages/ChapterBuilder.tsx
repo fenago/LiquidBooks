@@ -22,7 +22,7 @@ import FeatureSelector from '../components/FeatureSelector';
 import ReactMarkdown from 'react-markdown';
 import { CHAPTER_TEMPLATES, getTemplate } from '../constants/chapterTemplates';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 interface ChapterOutline {
   chapter_number: number;

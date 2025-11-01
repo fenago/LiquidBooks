@@ -38,7 +38,7 @@ export const useSettingsStore = create<SettingsState>()(
       },
       selectedProvider: 'claude',
       selectedModel: 'claude-sonnet-4-5-20250929',
-      backendUrl: 'http://localhost:8000',
+      backendUrl: import.meta.env.VITE_API_URL || 'http://localhost:8000',
       defaultFeatures: [],
       setApiKey: (provider, key) =>
         set((state) => ({

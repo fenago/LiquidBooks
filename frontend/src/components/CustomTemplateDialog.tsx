@@ -13,7 +13,7 @@ interface CustomTemplateDialogProps {
   onSave: (template: ChapterTemplate) => void;
 }
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export default function CustomTemplateDialog({ isOpen, onClose, onSave }: CustomTemplateDialogProps) {
   const [mode, setMode] = useState<'manual' | 'ai'>('manual');

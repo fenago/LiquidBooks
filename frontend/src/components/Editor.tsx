@@ -11,6 +11,8 @@ import axios from 'axios';
 import './Editor.css';
 import 'katex/dist/katex.min.css';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 type ViewMode = 'markdown' | 'preview' | 'split';
 
 export default function Editor() {
@@ -56,7 +58,7 @@ Make it VISUALLY STUNNING and PEDAGOGICALLY EXCELLENT.`;
     setGeneratingChapter(true);
 
     try {
-      const response = await axios.post('http://localhost:8000/api/ai/generate-chapter', {
+      const response = await axios.post(`${API_BASE_URL}/api/ai/generate-chapter`, {
         book_title: book.title,
         book_description: book.description,
         chapter_title: newChapterTitle,
@@ -106,7 +108,7 @@ Make it VISUALLY STUNNING and PEDAGOGICALLY EXCELLENT.`;
     setGeneratingChapter(true);
 
     try {
-      const response = await axios.post('http://localhost:8000/api/ai/generate-chapter', {
+      const response = await axios.post(`${API_BASE_URL}/api/ai/generate-chapter`, {
         book_title: book.title,
         book_description: book.description,
         chapter_title: currentChapter.title,
@@ -140,7 +142,7 @@ Make it VISUALLY STUNNING and PEDAGOGICALLY EXCELLENT.`;
     setBuildStatus('Building your book...');
 
     try {
-      const response = await axios.post('http://localhost:8000/api/build', {
+      const response = await axios.post(`${API_BASE_URL}/api/build`, {
         book,
       });
 
